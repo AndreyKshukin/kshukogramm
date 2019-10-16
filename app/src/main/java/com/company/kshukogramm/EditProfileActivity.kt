@@ -27,20 +27,6 @@ class EditProfileActivity : AppCompatActivity() {
 
         val auth = FirebaseAuth.getInstance()
         val user = auth.currentUser
-        val connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected")
-        connectedRef.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val connected = snapshot.getValue(Boolean::class.java) ?: false
-                if (connected) {
-                    Log.d(TAG, "connected")
-                } else {
-                    Log.d(TAG, "not connected")
-                }
-            }
-            override fun onCancelled(error: DatabaseError) {
-                Log.w(TAG, "Listener was cancelled")
-            }
-        })
 
         var database = FirebaseDatabase.getInstance().reference
         database.child("users")

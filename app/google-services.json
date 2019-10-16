@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "326012373720",
+    "firebase_url": "https://kshukogramm.firebaseio.com",
+    "project_id": "kshukogramm",
+    "storage_bucket": "kshukogramm.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:326012373720:android:733c6f8cd7237870d565ad",
+        "android_client_info": {
+          "package_name": "com.company.kshukogramm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "326012373720-2d5e8frqb7ld4qsc8urbbk1v6ef1ebh3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.company.kshukogramm",
+            "certificate_hash": "300d4f6c8e7e1d8bebb6016c27477bbbf6471aca"
+          }
+        },
+        {
+          "client_id": "326012373720-2c4du5c11bs6l48s3t45d6847lhsdp56.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAN-_uyc4p51AJ8buD-PdKRIBwrDXj6l2g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "326012373720-2c4du5c11bs6l48s3t45d6847lhsdp56.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
