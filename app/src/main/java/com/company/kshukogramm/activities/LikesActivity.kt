@@ -1,7 +1,8 @@
-package com.company.kshukogramm
+package com.company.kshukogramm.activities
 
 import android.os.Bundle
 import android.util.Log
+import com.company.kshukogramm.R
 
 class LikesActivity : BaseActivity(3) {
     private val TAG = "LikesActivity"

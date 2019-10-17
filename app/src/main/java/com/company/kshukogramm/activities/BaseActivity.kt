@@ -1,8 +1,9 @@
-package com.company.kshukogramm
+package com.company.kshukogramm.activities
 
 import android.content.Intent
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.company.kshukogramm.R
 import kotlinx.android.synthetic.main.bottom_navigation_view.*
 
 

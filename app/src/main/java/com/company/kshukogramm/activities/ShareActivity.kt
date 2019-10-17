@@ -1,7 +1,8 @@
-package com.company.kshukogramm
+package com.company.kshukogramm.activities
 
 import android.os.Bundle
 import android.util.Log
+import com.company.kshukogramm.R
 
 class ShareActivity : BaseActivity(2) {
     private val TAG = "ShareActivity"

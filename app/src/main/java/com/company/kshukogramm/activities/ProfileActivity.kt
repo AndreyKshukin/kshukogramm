@@ -1,8 +1,9 @@
-package com.company.kshukogramm
+package com.company.kshukogramm.activities
 
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import com.company.kshukogramm.R
 import kotlinx.android.synthetic.main.activity_profile.*
 
 class ProfileActivity : BaseActivity(4) {
