@@ -3,11 +3,8 @@ package com.company.kshukogramm.activities
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.view.View
-import android.widget.Toast
 import com.company.kshukogramm.R
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_login.*
@@ -24,7 +21,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener, KeyboardVisibil
         setContentView(R.layout.activity_login)
         Log.d(TAG, "onCreate")
 
-        KeyboardVisibilityEvent.setEventListener(this,this)
+        KeyboardVisibilityEvent.setEventListener(this, this)
         login_btn.setOnClickListener(this)
         create_account_text.setOnClickListener(this)
         coordinateBtnAndInputs(login_btn, email_input, password_input)
@@ -32,7 +29,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener, KeyboardVisibil
     }
 
     override fun onClick(view: View) {
-        when(view.id){
+        when (view.id) {
             R.id.login_btn -> {
                 val email = email_input.text.toString()
                 val password = password_input.text.toString()
@@ -41,6 +38,8 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener, KeyboardVisibil
                         if (it.isSuccessful) {
                             startActivity(Intent(this, HomeActivity::class.java))
                             finish()
+                        } else {
+                            showToast("Please enter email and password")
                         }
                     }
                 } else {
@@ -48,19 +47,18 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener, KeyboardVisibil
                 }
             }
             R.id.create_account_text -> {
-                startActivity(Intent(this, RegisterActivity:: class.java))
+                startActivity(Intent(this, RegisterActivity::class.java))
             }
         }
     }
 
     override fun onVisibilityChanged(isKeyBoardOpen: Boolean) {
-        if(isKeyBoardOpen){
+        if (isKeyBoardOpen) {
             create_account_text.visibility = View.GONE
         } else {
             create_account_text.visibility = View.VISIBLE
         }
     }
-
 
     private fun validate(email: String, password: String) =
         email.isNotEmpty() && password.isNotEmpty()

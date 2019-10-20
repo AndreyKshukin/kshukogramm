@@ -1,9 +1,15 @@
 package com.company.kshukogramm.activities
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.widget.TextView
+import androidx.core.content.FileProvider
 import com.company.kshukogramm.R
 import com.company.kshukogramm.models.User
 import com.company.kshukogramm.views.PasswordDialog
@@ -13,8 +19,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 
 import kotlinx.android.synthetic.main.activity_edit_profile.*
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 
 class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
     private val TAG = "EditProfileActivity"
@@ -22,6 +33,10 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
     private lateinit var mPendingUser: User
     private lateinit var mAuth: FirebaseAuth
     private lateinit var mDatabase: DatabaseReference
+    private lateinit var mStorage: StorageReference
+    private val TAKE_PICTUTE_REQUES_CODE = 1
+    val simpleDateFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+    private lateinit var mImageUri: Uri
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,9 +45,11 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
 
         close_image.setOnClickListener { finish() }
         save_image.setOnClickListener { updateProfile() }
+        change_photo_text.setOnClickListener { takeCameraPicture() }
 
         mAuth = FirebaseAuth.getInstance()
         mDatabase = FirebaseDatabase.getInstance().reference
+        mStorage = FirebaseStorage.getInstance().reference
         mDatabase.child("users")
             .child(mAuth.currentUser!!.uid)
             .addListenerForSingleValueEvent(
@@ -45,6 +62,50 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
                     email_input.setText(mUser.email, TextView.BufferType.EDITABLE)
                     phone_input.setText(mUser.phone.toString(), TextView.BufferType.EDITABLE)
                 })
+    }
+
+    private fun takeCameraPicture() {
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        if (intent.resolveActivity(packageManager) != null) {
+            val imageFile = createImageFile()
+            mImageUri = FileProvider.getUriForFile(
+                this,
+                "com.company.kshukogramm.fileprovider",
+                imageFile
+            )
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri)
+            startActivityForResult(intent, TAKE_PICTUTE_REQUES_CODE)
+        }
+    }
+
+    private fun createImageFile(): File {
+        val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(
+            "JPEG_${simpleDateFormat.format(Date())}_",
+            ".jpg",
+            storageDir
+        )
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == TAKE_PICTUTE_REQUES_CODE && resultCode == Activity.RESULT_OK) {
+            val uid = mAuth.currentUser!!.uid
+            mStorage.child("users/$uid/photo").putFile(mImageUri).addOnCompleteListener {
+                if (it.isSuccessful) {
+                    mDatabase.child("users/$uid/photo").setValue(
+                        it.result?.metadata?.reference?.downloadUrl.toString()
+                    ).addOnCompleteListener {
+                        if (it.isSuccessful) {
+                            Log.d(TAG, "onActivityResults: photo save successfully")
+                        } else {
+
+                        }
+                    }
+                } else {
+                    showToast(it.exception!!.message!!)
+                }
+            }
+        }
     }
 
     private fun updateProfile() {
@@ -95,7 +156,7 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
         if (user.email != mUser.email) updatesMap["email"] = user.email
         if (user.phone != mUser.phone) updatesMap["phone"] = user.phone
 
-        mDatabase.updateUser(mAuth.currentUser!!.uid, updatesMap){
+        mDatabase.updateUser(mAuth.currentUser!!.uid, updatesMap) {
             showToast("Profile saved")
             finish()
         }
@@ -109,8 +170,10 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
             else -> null
         }
 
-    private fun DatabaseReference.updateUser(uid: String, updates: Map<String, Any>,
-                                             onSuccess: () -> Unit){
+    private fun DatabaseReference.updateUser(
+        uid: String, updates: Map<String, Any>,
+        onSuccess: () -> Unit
+    ) {
         child("users").child((mAuth.currentUser!!.uid)).updateChildren(updates)
             .addOnCompleteListener {
                 if (it.isSuccessful) {
@@ -121,8 +184,8 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
             }
     }
 
-    private fun FirebaseUser.updateEmail(email: String, onSuccess: () -> Unit){
-        updateEmail(email).addOnCompleteListener{
+    private fun FirebaseUser.updateEmail(email: String, onSuccess: () -> Unit) {
+        updateEmail(email).addOnCompleteListener {
             if (it.isSuccessful) {
                 onSuccess()
             } else {
@@ -131,7 +194,7 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
         }
     }
 
-    private fun FirebaseUser.reauthenticate(credential: AuthCredential, onSuccess: () -> Unit){
+    private fun FirebaseUser.reauthenticate(credential: AuthCredential, onSuccess: () -> Unit) {
         reauthenticate(credential).addOnCompleteListener {
             if (it.isSuccessful) {
                 onSuccess()
