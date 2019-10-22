@@ -2,116 +2,66 @@ package com.company.kshukogramm.activities
 
 import android.app.Activity
 import android.content.Intent
-import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
-import android.text.Editable
 import android.util.Log
-import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.FileProvider
 import com.company.kshukogramm.R
 import com.company.kshukogramm.models.User
+import com.company.kshukogramm.utils.CameraPictureTaker
+import com.company.kshukogramm.utils.FirebaseHelper
+import com.company.kshukogramm.utils.ValueEventListenerAdapter
 import com.company.kshukogramm.views.PasswordDialog
-import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.EmailAuthProvider
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.StorageReference
 
 import kotlinx.android.synthetic.main.activity_edit_profile.*
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
 
 class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
     private val TAG = "EditProfileActivity"
     private lateinit var mUser: User
     private lateinit var mPendingUser: User
-    private lateinit var mAuth: FirebaseAuth
-    private lateinit var mDatabase: DatabaseReference
-    private lateinit var mStorage: StorageReference
-    private val TAKE_PICTUTE_REQUES_CODE = 1
-    val simpleDateFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-    private lateinit var mImageUri: Uri
+    private lateinit var mFirebaseHelper: FirebaseHelper
+    private lateinit var mCameraPictureTaker: CameraPictureTaker
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_edit_profile)
         Log.d(TAG, "onCreate")
 
+        mCameraPictureTaker = CameraPictureTaker(this)
+
         close_image.setOnClickListener { finish() }
         save_image.setOnClickListener { updateProfile() }
-        change_photo_text.setOnClickListener { takeCameraPicture() }
+        change_photo_text.setOnClickListener { mCameraPictureTaker.takeCameraPicture() }
 
-        mAuth = FirebaseAuth.getInstance()
-        mDatabase = FirebaseDatabase.getInstance().reference
-        mStorage = FirebaseStorage.getInstance().reference
-        mDatabase.child("users")
-            .child(mAuth.currentUser!!.uid)
-            .addListenerForSingleValueEvent(
-                ValueEventListenerAdapter {
-                    mUser = it.getValue(User::class.java)!!
-                    name_input.setText(mUser.name, TextView.BufferType.EDITABLE)
-                    username_input.setText(mUser.username, TextView.BufferType.EDITABLE)
-                    website_input.setText(mUser.website, TextView.BufferType.EDITABLE)
-                    bio_input.setText(mUser.bio, TextView.BufferType.EDITABLE)
-                    email_input.setText(mUser.email, TextView.BufferType.EDITABLE)
-                    phone_input.setText(mUser.phone?.toString(), TextView.BufferType.EDITABLE)
-                    profile_image.loadUserPhoto(mUser.photo)
-                })
-    }
-
-    private fun takeCameraPicture() {
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        if (intent.resolveActivity(packageManager) != null) {
-            val imageFile = createImageFile()
-            mImageUri = FileProvider.getUriForFile(
-                this,
-                "com.company.kshukogramm.fileprovider",
-                imageFile
-            )
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri)
-            startActivityForResult(intent, TAKE_PICTUTE_REQUES_CODE)
-        }
-    }
-
-    private fun createImageFile(): File {
-        val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return File.createTempFile(
-            "JPEG_${simpleDateFormat.format(Date())}_",
-            ".jpg",
-            storageDir
-        )
+        mFirebaseHelper = FirebaseHelper(this)
+        mFirebaseHelper.currentUserReference().addListenerForSingleValueEvent(
+            ValueEventListenerAdapter {
+                mUser = it.getValue(User::class.java)!!
+                name_input.setText(mUser.name)
+                username_input.setText(mUser.username)
+                website_input.setText(mUser.website)
+                bio_input.setText(mUser.bio)
+                email_input.setText(mUser.email)
+                phone_input.setText(mUser.phone?.toString())
+                profile_image.loadUserPhoto(mUser.photo)
+            })
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == TAKE_PICTUTE_REQUES_CODE && resultCode == Activity.RESULT_OK) {
-            val uid = mAuth.currentUser!!.uid
-            mStorage.child("users/$uid/photo").putFile(mImageUri).addOnCompleteListener {
-                if (it.isSuccessful) {
-                    val downloadTask = it.result!!.metadata!!.reference!!.downloadUrl
-                    downloadTask.addOnSuccessListener { uri ->
-                        mDatabase.child("users/$uid/photo").setValue(uri.toString())
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    Log.d(TAG, "onActivityResult: photo saved successfully")
-                                } else {
-                                    showToast(task.exception!!.message!!)
-                                }
-                            }
+        if (requestCode == mCameraPictureTaker.REQUES_CODE && resultCode == Activity.RESULT_OK) {
+            mFirebaseHelper.uploadUserPhoto(mCameraPictureTaker.imageUri!!) {
+                val downloadTask = it.metadata!!.reference!!.downloadUrl
+                downloadTask.addOnSuccessListener { uri ->
+                    mFirebaseHelper.updateUserPhoto(uri.toString()) {
+                        mUser = mUser.copy(photo = uri.toString())
+                        profile_image.loadUserPhoto((mUser.photo))
                     }
-                } else {
-                    showToast(it.exception!!.message!!)
                 }
             }
         }
     }
+
 
     private fun updateProfile() {
         mPendingUser = readInputs()
@@ -141,8 +91,8 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
     override fun onPasswordConfirm(password: String) {
         if (password.isNotEmpty()) {
             val credential = EmailAuthProvider.getCredential(mUser.email, password)
-            mAuth.currentUser!!.reauthenticate(credential).addOnCompleteListener {
-                mAuth.currentUser!!.updateEmail(mPendingUser.email) {
+            mFirebaseHelper.reauthenticate(credential){
+                mFirebaseHelper.updateEmail(mPendingUser.email) {
                     updateUser(mPendingUser)
                 }
             }
@@ -160,7 +110,7 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
         if (user.email != mUser.email) updatesMap["email"] = user.email
         if (user.phone != mUser.phone) updatesMap["phone"] = user.phone
 
-        mDatabase.updateUser(mAuth.currentUser!!.uid, updatesMap) {
+        mFirebaseHelper.updateUser(updatesMap) {
             showToast("Profile saved")
             finish()
         }
@@ -174,43 +124,7 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
             else -> null
         }
 
-    private fun DatabaseReference.updateUser(
-        uid: String, updates: Map<String, Any?>,
-        onSuccess: () -> Unit
-    ) {
-        child("users").child((uid)).updateChildren(updates)
-            .addOnCompleteListener {
-                if (it.isSuccessful) {
-                    onSuccess()
-                } else {
-                    showToast(it.exception!!.message!!)
-                }
-            }
-    }
 
-    private fun FirebaseUser.updateEmail(email: String, onSuccess: () -> Unit) {
-        updateEmail(email).addOnCompleteListener {
-            if (it.isSuccessful) {
-                onSuccess()
-            } else {
-                showToast(it.exception!!.message!!)
-            }
-        }
-    }
-
-    private fun FirebaseUser.reauthenticate(credential: AuthCredential, onSuccess: () -> Unit) {
-        reauthenticate(credential).addOnCompleteListener {
-            if (it.isSuccessful) {
-                onSuccess()
-            } else {
-                showToast(it.exception!!.message!!)
-            }
-        }
-    }
-
-    private fun getdDownloadImageURL(){
-
-    }
 }
 
 
