@@ -45,7 +45,7 @@ class RegisterActivity : AppCompatActivity(), EmailFragment.Listener, NamePassFr
         if (email.isNotEmpty()) {
             mEmail = email
             mAuth.fetchSignInMethodsForEmail(email) { signInMethods ->
-                if (signInMethods?.isEmpty()) {
+                if (signInMethods.isEmpty()) {
                     supportFragmentManager.beginTransaction()
                         .replace(R.id.frame_layout, NamePassFragment())
                         .addToBackStack(null)

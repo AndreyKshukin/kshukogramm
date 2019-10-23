@@ -17,7 +17,7 @@ class HomeActivity : BaseActivity(0) {
         Log.d(TAG, "onCreate")
 
         mAuth = FirebaseAuth.getInstance()
-//        mAuth.signInWithEmailAndPassword("kshuk@gmail.com", "123456")
+//        auth.signInWithEmailAndPassword("kshuk@gmail.com", "123456")
 //            .addOnCompleteListener{
 //                if(it.isSuccessful){
 //                    Log.d(TAG, "signIn: success")
