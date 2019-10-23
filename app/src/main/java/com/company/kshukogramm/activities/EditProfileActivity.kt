@@ -5,10 +5,9 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.widget.TextView
 import com.company.kshukogramm.R
 import com.company.kshukogramm.models.User
-import com.company.kshukogramm.utils.CameraPictureTaker
+import com.company.kshukogramm.utils.CameraHelper
 import com.company.kshukogramm.utils.FirebaseHelper
 import com.company.kshukogramm.utils.ValueEventListenerAdapter
 import com.company.kshukogramm.views.PasswordDialog
@@ -21,18 +20,18 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
     private lateinit var mUser: User
     private lateinit var mPendingUser: User
     private lateinit var mFirebaseHelper: FirebaseHelper
-    private lateinit var mCameraPictureTaker: CameraPictureTaker
+    private lateinit var mCameraHelper: CameraHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_edit_profile)
         Log.d(TAG, "onCreate")
 
-        mCameraPictureTaker = CameraPictureTaker(this)
+        mCameraHelper = CameraHelper(this)
 
         close_image.setOnClickListener { finish() }
         save_image.setOnClickListener { updateProfile() }
-        change_photo_text.setOnClickListener { mCameraPictureTaker.takeCameraPicture() }
+        change_photo_text.setOnClickListener { mCameraHelper.takeCameraPicture() }
 
         mFirebaseHelper = FirebaseHelper(this)
         mFirebaseHelper.currentUserReference().addListenerForSingleValueEvent(
@@ -49,8 +48,8 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == mCameraPictureTaker.REQUES_CODE && resultCode == Activity.RESULT_OK) {
-            mFirebaseHelper.uploadUserPhoto(mCameraPictureTaker.imageUri!!) {
+        if (requestCode == mCameraHelper.REQUES_CODE && resultCode == Activity.RESULT_OK) {
+            mFirebaseHelper.uploadUserPhoto(mCameraHelper.imageUri!!) {
                 val downloadTask = it.metadata!!.reference!!.downloadUrl
                 downloadTask.addOnSuccessListener { uri ->
                     mFirebaseHelper.updateUserPhoto(uri.toString()) {
