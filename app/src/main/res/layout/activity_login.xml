@@ -23,24 +23,24 @@
 
         <EditText
             android:id="@+id/email_input"
-            style="@style/login_input"
+            style="@style/big_input"
             android:layout_marginTop="40dp"
             android:hint="Email"
             android:inputType="textEmailAddress"
-            android:background="@drawable/login_input_bg"
+            android:background="@drawable/big_input_bg"
             app:layout_constraintTop_toBottomOf="@id/instagram_image" />
 
         <EditText
             android:id="@+id/password_input"
-            style="@style/login_input"
+            style="@style/big_input"
             app:layout_constraintTop_toBottomOf="@id/email_input"
             android:hint="Password"
             android:inputType="textPassword"
-            android:background="@drawable/login_input_bg" />
+            android:background="@drawable/big_input_bg" />
 
         <Button
             android:id="@+id/login_btn"
-            style="@style/login_btn"
+            style="@style/big_btn"
             app:layout_constraintTop_toBottomOf="@id/password_input"
             android:text="Log In" />
 

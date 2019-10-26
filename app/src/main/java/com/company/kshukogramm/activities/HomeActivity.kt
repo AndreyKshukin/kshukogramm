@@ -56,7 +56,6 @@ class HomeActivity : BaseActivity(0) {
             mFirebase.database.child("feed-posts").child(currentUser.uid)
                 .addValueEventListener(ValueEventListenerAdapter {
                     val posts = it.children.map { it.getValue(FeedPost::class.java)!! }
-                    Log.d(TAG, "feedPosts: ${posts.first().timestampDate()}")
                     feed_recycle.adapter = FeedAdapter(posts)
                     feed_recycle.layoutManager = LinearLayoutManager(this)
                 })
@@ -76,7 +75,7 @@ class FeedAdapter(private val posts: List<FeedPost>)
     }
 
     @SuppressLint("SetTextI18n")
-    override fun onBindViewHolder(holder: FeedAdapter.ViewHolder, position: Int){
+    override fun onBindViewHolder(holder: ViewHolder, position: Int){
         val post = posts[position]
         with(holder){
             view.user_photo_image.loadImage(post.photo)

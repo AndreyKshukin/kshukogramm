@@ -15,7 +15,8 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             style="@style/toolbar"
-            app:contentInsetStart="0dp">
+            app:contentInsetStart="0dp"
+            tools:ignore="MissingConstraints">
 
 
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -23,7 +24,7 @@
                 android:layout_height="wrap_content">
 
                 <ImageView
-                    android:id="@+id/close_image"
+                    android:id="@+id/back_image"
                     style="@style/icon"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
@@ -33,7 +34,7 @@
                 <TextView
                     style="@style/toolbar_title"
                     android:text="Edit profile"
-                    app:layout_constraintStart_toEndOf="@id/close_image"
+                    app:layout_constraintStart_toEndOf="@id/back_image"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent" />
 
