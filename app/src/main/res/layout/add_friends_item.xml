@@ -6,7 +6,7 @@
     android:paddingStart="10dp"
     android:paddingEnd="10dp">
 
-    <ImageView
+    <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/photo_image"
         android:layout_width="50dp"
         android:layout_height="50dp"
@@ -53,7 +53,5 @@
         android:text="Follow"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/username_text"/>
-
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

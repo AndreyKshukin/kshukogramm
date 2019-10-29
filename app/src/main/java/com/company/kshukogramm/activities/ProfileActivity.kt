@@ -44,7 +44,7 @@ class ProfileActivity : BaseActivity(4) {
 
         mFirebase = FirebaseHelper(this)
         mFirebase.currentUserReference().addValueEventListener(ValueEventListenerAdapter{
-            mUser = it.getValue(User::class.java)!!
+            mUser = it.asUser()!!
             profile_image.loadUserPhoto(mUser.photo)
             username_text.text = mUser.username
         })
@@ -74,4 +74,10 @@ class ImagesAdapter(private val images: List<String>) :
     }
 
     override fun getItemCount(): Int = images.size
+}
+
+class SquareImageView(context: Context, attrs: AttributeSet) : ImageView(context, attrs) {
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, widthMeasureSpec)
+    }
 }
