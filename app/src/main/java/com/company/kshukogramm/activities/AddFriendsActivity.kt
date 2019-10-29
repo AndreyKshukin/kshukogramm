@@ -31,7 +31,7 @@ class AddFriendsActivity : AppCompatActivity(), FriendsAdapter.Listener {
         mFirebase = FirebaseHelper(this)
         mAdapter = FriendsAdapter(this)
 
-        val uid = mFirebase.auth.currentUser!!.uid
+        val uid = mFirebase.currentUid()!!
 
         back_image.setOnClickListener{finish()}
         add_friends_recycler.adapter = mAdapter
@@ -56,14 +56,10 @@ class AddFriendsActivity : AppCompatActivity(), FriendsAdapter.Listener {
     }
 
     private fun setFollow(uid: String, follow: Boolean, onSuccess: () -> Unit){
-        fun DatabaseReference.setValueTrueOrRemove(value: Boolean)=
-            if(value) setValue(true) else removeValue()
-
-        val followsTask = mFirebase.database.child("users").child(mUser.uid).child(uid)
-            .child("follows").setValueTrueOrRemove(follow)
-
-        val followerTask = mFirebase.database.child("users").child(uid)
-            .child("followers").child(mUser.uid).setValueTrueOrRemove(follow)
+        val followsTask = mFirebase.database.child("users").child(mUser.uid).
+            child("follows").child(uid).setValueTrueOrRemove(follow)
+        val followersTask = mFirebase.database.child("users")
+            .child(uid).child("followers").child(mUser.uid).setValueTrueOrRemove(follow)
 
         val feedPostsTask = task<Void> { taskSource ->
             mFirebase.database.child("feed-posts").child(uid)
@@ -83,7 +79,7 @@ class AddFriendsActivity : AppCompatActivity(), FriendsAdapter.Listener {
                 })
         }
 
-        Tasks.whenAll(followsTask,followerTask, feedPostsTask).addOnCompleteListener{
+        Tasks.whenAll(followsTask,followersTask, feedPostsTask).addOnCompleteListener{
             if(it.isSuccessful){
                 onSuccess()
             } else {

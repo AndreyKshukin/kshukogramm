@@ -6,14 +6,13 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import com.company.kshukogramm.R
+import com.company.kshukogramm.models.FeedPost
 import com.company.kshukogramm.models.User
 import com.company.kshukogramm.utils.CameraHelper
 import com.company.kshukogramm.utils.FirebaseHelper
 import com.company.kshukogramm.utils.GlideApp
 import com.company.kshukogramm.utils.ValueEventListenerAdapter
-import com.google.firebase.database.ServerValue
 import kotlinx.android.synthetic.main.activity_share.*
-import java.util.*
 
 class ShareActivity : BaseActivity(2) {
     private val TAG = "ShareActivity"
@@ -51,7 +50,7 @@ class ShareActivity : BaseActivity(2) {
     private fun share() {
         val imageUri = mCamera.imageUri
         if(mCamera.imageUri != null){
-            val uid = mFirebase.auth.currentUser!!.uid
+            val uid = mFirebase.currentUid()!!
             mFirebase.storage.child("users").child(uid).child("images")
                 .child(imageUri!!.lastPathSegment!!).putFile((imageUri)).addOnCompleteListener{
                     if(it.isSuccessful){
@@ -96,22 +95,3 @@ class ShareActivity : BaseActivity(2) {
     }
 }
 
-data class FeedPost(
-    val uid: String = "",
-    val username: String = "",
-    val image: String = "",
-    val likesCount: Int = 0,
-    val commentsCount: Int = 0,
-    val caption: String = "",
-    val comments: List<Comment> = emptyList(),
-    val timestamp: Any = ServerValue.TIMESTAMP,
-    val photo: String? = null){
-    fun timestampDate(): Date = Date(timestamp as Long)
-}
-
-data class Comment(
-    val uid: String,
-    val username: String,
-    val text: String
-
-)
